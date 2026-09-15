@@ -44,8 +44,8 @@ FROM nvidia/cuda:${CUDA_TAG_DEVEL} AS sageattention-builder
 ARG INSTALL_SAGEATTENTION
 ARG TORCH_INDEX=cu130
 ARG SAGEATTENTION_ARCH_LIST="8.0;8.6;8.9;9.0"
-# 限制平行編譯數，避免 torch 標頭編譯時佔用大量記憶體造成 OOM
-ARG SAGEATTENTION_MAX_JOBS=2
+# 限制平行編譯數，避免 torch 標頭編譯時佔用大量記憶體造成 OOM（多架構 gencode 同時編譯很吃記憶體，序列化較穩）
+ARG SAGEATTENTION_MAX_JOBS=1
 ENV DEBIAN_FRONTEND=noninteractive \
     PIP_NO_CACHE_DIR=1 \
     PIP_BREAK_SYSTEM_PACKAGES=1 \

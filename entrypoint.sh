@@ -136,6 +136,11 @@ else
     echo "[entrypoint] SKIP_LLM_DOWNLOAD=1 set; skipping Gemma 4 GGUF auto-download"
 fi
 
+# ComfyUI 內部固定監聽容器內的 8188，實際對外 port 由啟動時 `docker run -p <host>:8188`
+# 或 docker-compose.yml 決定；下方 ComfyUI 自身印出的 GUI 網址永遠顯示 8188，請以
+# 啟動指令實際指定的 host port 為準（例如 run.sh -g all 對應的是 8190）。
+echo "[entrypoint] Container listens on 8188 internally; use the host port mapped via 'docker run -p' (see run.sh/docker-compose.yml output) to access the GUI."
+
 exec python main.py \
     --listen 0.0.0.0 \
     --port 8188 \
