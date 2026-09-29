@@ -18,13 +18,6 @@
 #       --cuda        CUDA base image tag
 #   -n, --easy-install-nodes <profile>
 #                     Easy-Install custom-node profile: standard/none，預設 standard
-#       --install-sageattention
-#                     編譯並安裝 SageAttention（預設開啟，需搭配目標 GPU 架構）
-#       --no-sageattention
-#                     停用 SageAttention 編譯
-#       --sage-arch <list>
-#                     SageAttention 編譯的 TORCH_CUDA_ARCH_LIST，預設 8.0;8.6;8.9;9.0
-#                     （記憶體不足時可縮減，例如只編 RTX 40 系列: --sage-arch 8.9）
 #       --no-push     只 build，不 push
 #   -h, --help        顯示說明
 #
@@ -43,8 +36,6 @@ GITHUB_REPO="Comfy-Org/ComfyUI"
 CUDA_TAG="13.0.0-cudnn-runtime-ubuntu24.04"
 TORCH_INDEX="cu130"
 EASY_INSTALL_NODES="standard"
-INSTALL_SAGEATTENTION=true
-SAGEATTENTION_ARCH_LIST="8.0;8.6;8.9;9.0"
 FORCE=false
 CHECK_ONLY=false
 NO_PUSH=false
@@ -72,9 +63,6 @@ while [[ $# -gt 0 ]]; do
         -t|--torch)      TORCH_INDEX="$2";  shift 2 ;;
         --cuda)          CUDA_TAG="$2";     shift 2 ;;
         -n|--easy-install-nodes) EASY_INSTALL_NODES="$2"; shift 2 ;;
-        --install-sageattention) INSTALL_SAGEATTENTION=true; shift ;;
-        --no-sageattention) INSTALL_SAGEATTENTION=false; shift ;;
-        --sage-arch)      SAGEATTENTION_ARCH_LIST="$2"; shift 2 ;;
         --no-push)       NO_PUSH=true;      shift   ;;
         -h|--help)       usage ;;
         *) die "未知參數: $1，使用 -h 查看說明" ;;
@@ -169,8 +157,6 @@ docker build \
     --build-arg "CUDA_TAG_DEVEL=${CUDA_TAG_DEVEL}" \
     --build-arg "TORCH_INDEX=${TORCH_INDEX}" \
     --build-arg "EASY_INSTALL_NODES=${EASY_INSTALL_NODES}" \
-    --build-arg "INSTALL_SAGEATTENTION=${INSTALL_SAGEATTENTION}" \
-    --build-arg "SAGEATTENTION_ARCH_LIST=${SAGEATTENTION_ARCH_LIST}" \
     -t "$FULL_TAG" \
     -t "$LATEST_TAG" \
     -t "$REBUILD_DATA_TAG" \

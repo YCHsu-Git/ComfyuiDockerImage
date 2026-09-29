@@ -11,12 +11,8 @@
 # 多 GPU  ：docker-compose.yml 中 NVIDIA_VISIBLE_DEVICES=all / device_ids 控制
 # ============================================================
 ARG CUDA_TAG=13.0.0-cudnn-runtime-ubuntu24.04
-# devel 版本才含 nvcc，僅用於建置 llama-cpp-python / SageAttention 的 CUDA wheel
+# devel 版本才含 nvcc，僅用於建置 llama-cpp-python 的 CUDA wheel
 ARG CUDA_TAG_DEVEL=13.0.0-cudnn-devel-ubuntu24.04
-# SageAttention 預設不編譯（需與目標 GPU 架構的 TORCH_CUDA_ARCH_LIST 相符）：
-#   --build-arg INSTALL_SAGEATTENTION=true
-#   --build-arg SAGEATTENTION_ARCH_LIST="8.0;8.6;8.9;9.0"  (Ampere/Ada/Hopper)
-ARG INSTALL_SAGEATTENTION=false
 
 # ---------- Stage 1: 建置 llama-cpp-python（CUDA/GGML_CUDA）wheel ----------
 FROM nvidia/cuda:${CUDA_TAG_DEVEL} AS llama-cpp-builder
@@ -38,36 +34,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN python -m pip install --upgrade pip --ignore-installed \
     && python -m pip wheel --no-cache-dir --no-deps -w /wheels llama-cpp-python
 
-# ---------- Stage 2: 建置 SageAttention（可選，CUDA wheel）----------
-# PyTorch 2.9+ 標頭需要 C++20，但 SageAttention setup.py 寫死 -std=c++17，故建置時會 sed 覆寫。
-FROM nvidia/cuda:${CUDA_TAG_DEVEL} AS sageattention-builder
-ARG INSTALL_SAGEATTENTION
-ARG TORCH_INDEX=cu130
-ARG SAGEATTENTION_ARCH_LIST="8.0;8.6;8.9;9.0"
-# 限制平行編譯數，避免 torch 標頭編譯時佔用大量記憶體造成 OOM（多架構 gencode 同時編譯很吃記憶體，序列化較穩）
-ARG SAGEATTENTION_MAX_JOBS=1
-ENV DEBIAN_FRONTEND=noninteractive \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_BREAK_SYSTEM_PACKAGES=1 \
-    MAX_JOBS=${SAGEATTENTION_MAX_JOBS}
-RUN mkdir -p /wheels \
-    && if [ "${INSTALL_SAGEATTENTION}" = "true" ]; then \
-        apt-get update && apt-get install -y --no-install-recommends \
-            python3 python3-pip python3-dev git build-essential ninja-build \
-        && ln -sf /usr/bin/python3 /usr/bin/python \
-        && rm -rf /var/lib/apt/lists/* \
-        && python -m pip install --upgrade pip --ignore-installed \
-        && python -m pip install setuptools wheel packaging ninja \
-        && python -m pip install torch --extra-index-url https://download.pytorch.org/whl/${TORCH_INDEX} \
-        && git clone --depth 1 https://github.com/thu-ml/SageAttention.git /tmp/SageAttention \
-        && sed -i 's/std=c++17/std=c++20/g' /tmp/SageAttention/setup.py \
-        && TORCH_CUDA_ARCH_LIST="${SAGEATTENTION_ARCH_LIST}" MAX_JOBS="${MAX_JOBS}" python -m pip wheel --no-cache-dir --no-build-isolation --no-deps -w /wheels /tmp/SageAttention \
-        && rm -rf /tmp/SageAttention; \
-    else \
-        echo "SageAttention build skipped (INSTALL_SAGEATTENTION=false)"; \
-    fi
-
-# ---------- Stage 3: Runtime image ----------
+# ---------- Stage 2: Runtime image ----------
 FROM nvidia/cuda:${CUDA_TAG}
 
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -129,13 +96,6 @@ RUN python -m pip install -r manager_requirements.txt
 COPY --from=llama-cpp-builder /wheels /tmp/llama-cpp-wheels
 RUN python -m pip install /tmp/llama-cpp-wheels/*.whl \
     && rm -rf /tmp/llama-cpp-wheels
-
-# ---------- SageAttention (optional; CUDA wheel from Stage 2 builder) ----------
-COPY --from=sageattention-builder /wheels /tmp/sageattention-wheels
-RUN if ls /tmp/sageattention-wheels/*.whl >/dev/null 2>&1; then \
-        python -m pip install /tmp/sageattention-wheels/*.whl; \
-    fi \
-    && rm -rf /tmp/sageattention-wheels
 
 # ---------- Easy-Install standard custom nodes ----------
 # They are staged outside /app because /app/custom_nodes is a persistent mount.

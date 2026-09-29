@@ -338,42 +338,6 @@ bash auto-update.sh --easy-install-nodes none --no-push --force
 Nunchaku、FlashAttention、InsightFace 與 Trellis2 維持選用，
 因為它們需要與 GPU 架構、PyTorch/CUDA 版本或模型授權相符的額外設定。
 
-### SageAttention（可選，CUDA wheel 編譯安裝）
-
-預設不編譯，需明確加上 build-arg 才會啟用：
-
-```powershell
-.\auto-update.ps1 -Force -InstallSageAttention
-```
-
-```bash
-bash auto-update.sh --force --install-sageattention
-```
-
-建置時會在含 `nvcc` 的 CUDA devel 階段安裝與執行期相同版本的 PyTorch，
-再依 `SAGEATTENTION_ARCH_LIST`（預設 `8.0;8.6;8.9;9.0`，涵蓋 Ampere/Ada/Hopper）
-編譯出對應的 wheel。若目標 GPU 架構不在預設清單內，可另外指定：
-
-```powershell
-docker build --build-arg INSTALL_SAGEATTENTION=true `
-             --build-arg SAGEATTENTION_ARCH_LIST="9.0" .
-```
-
-或透過 auto-update 腳本：
-
-```powershell
-.\auto-update.ps1 -Force -InstallSageAttention -SageAttentionArchList "8.9"
-```
-
-```bash
-bash auto-update.sh --force --install-sageattention --sage-arch "8.9"
-```
-
-因需要編譯，啟用後 build 時間會拉長。若編譯過程中 `ninja` 回傳非零錯誤（常見於 exit code 255，
-多為記憶體不足被系統中止），可將 `SAGEATTENTION_ARCH_LIST` / `--sage-arch` 縮減為只包含目標 GPU
-的單一架構（例如 RTX 40 系列只需 `8.9`），並確認 Docker build 環境（Docker Desktop / WSL2）
-有足夠記憶體（建議 8–16GB 以上）。
-
 ### llama-cpp-python（CUDA 加速，隨映像固定安裝）
 
 映像會以 multi-stage build 先在含 `nvcc` 的 CUDA devel 階段（自動由
