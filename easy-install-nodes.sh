@@ -45,7 +45,6 @@ case "${NODES_PROFILE}" in
         install_node https://github.com/kijai/ComfyUI-WanVideoWrapper ComfyUI-WanVideoWrapper
         install_node https://github.com/1038lab/ComfyUI-QwenVL ComfyUI-QwenVL
         install_node https://github.com/flybirdxx/ComfyUI-Qwen-TTS qwen3-tts-comfyui
-        install_node https://github.com/Saganaki22/ComfyUI-FishAudioS2 ComfyUI-fish-audio-s2
         install_node https://github.com/numz/ComfyUI-SeedVR2_VideoUpscaler seedvr2-videoupscaler
         install_node https://github.com/chflame163/ComfyUI_LayerStyle comfyui_layerstyle
         install_node https://github.com/kijai/ComfyUI-WanAnimatePreprocess ComfyUI-WanAnimatePreprocess
