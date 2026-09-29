@@ -2,6 +2,9 @@
 <#
 .SYNOPSIS
     ComfyUI Docker Auto-Update Orchestrator.
+.PARAMETER SageAttentionArchList
+    SageAttention 編譯的 TORCH_CUDA_ARCH_LIST，預設涵蓋 Ampere/Ada/Hopper。
+    記憶體不足時可縮減，例如只編 RTX 40 系列: -SageAttentionArchList "8.9"
 #>
 param(
     [switch]$Force,
@@ -12,6 +15,7 @@ param(
     [ValidateSet("standard", "none")]
     [string]$EasyInstallNodes = "standard",
     [switch]$InstallSageAttention,
+    [string]$SageAttentionArchList = "8.0;8.6;8.9;9.0",
     [switch]$NoPush
 )
 
@@ -135,6 +139,7 @@ try {
         "--build-arg", "TORCH_INDEX=$TorchIndex",
         "--build-arg", "EASY_INSTALL_NODES=$EasyInstallNodes",
         "--build-arg", "INSTALL_SAGEATTENTION=$($InstallSageAttention.IsPresent.ToString().ToLower())",
+        "--build-arg", "SAGEATTENTION_ARCH_LIST=$SageAttentionArchList",
         "-t", $fullTag,
         "-t", $latestTag,
         "-t", $rebuildDataTag,

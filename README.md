@@ -359,7 +359,20 @@ docker build --build-arg INSTALL_SAGEATTENTION=true `
              --build-arg SAGEATTENTION_ARCH_LIST="9.0" .
 ```
 
-因需要編譯，啟用後 build 時間會拉長。
+或透過 auto-update 腳本：
+
+```powershell
+.\auto-update.ps1 -Force -InstallSageAttention -SageAttentionArchList "8.9"
+```
+
+```bash
+bash auto-update.sh --force --install-sageattention --sage-arch "8.9"
+```
+
+因需要編譯，啟用後 build 時間會拉長。若編譯過程中 `ninja` 回傳非零錯誤（常見於 exit code 255，
+多為記憶體不足被系統中止），可將 `SAGEATTENTION_ARCH_LIST` / `--sage-arch` 縮減為只包含目標 GPU
+的單一架構（例如 RTX 40 系列只需 `8.9`），並確認 Docker build 環境（Docker Desktop / WSL2）
+有足夠記憶體（建議 8–16GB 以上）。
 
 ### llama-cpp-python（CUDA 加速，隨映像固定安裝）
 
