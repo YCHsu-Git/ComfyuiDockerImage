@@ -314,7 +314,7 @@ bash auto-update.sh --force --version v0.28.0
 映像預設加入 Tavris1/ComfyUI-Easy-Install 的 `standard` 節點 profile：
 Easy-Use、ControlNet Aux、rgthree、iTools、GGUF、
 ControlAltAI、Inpaint CropAndStitch、RMBG、VideoHelperSuite、TiledDiffusion、
-KJNodes、WanVideoWrapper、QwenVL、Qwen-TTS、SeedVR2、LayerStyle、
+KJNodes、WanVideoWrapper、QwenVL、Qwen-TTS、Simple_Qwen3-VL-gguf、SeedVR2、LayerStyle、
 WanAnimatePreprocess、Pixaroma、Easy-Sam3、SCAIL-Pose、MelBandRoFormer、
 Krea2T-Enhancer、Krea2Edit、WAS Node Suite、H3-Motion-Context-MultiRef、
 MAINodes、SolAttn_triton、Minimax-H3-Latent-Upscaler、MiniMaxH3-Context-Loop、
