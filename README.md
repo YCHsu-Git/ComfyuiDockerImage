@@ -343,7 +343,13 @@ Nunchaku、FlashAttention、InsightFace 與 Trellis2 維持選用，
 映像會以 multi-stage build 先在含 `nvcc` 的 CUDA devel 階段（自動由
 `CUDA_TAG` 推導出對應的 `-devel-` 版本）編譯出啟用 `GGML_CUDA` 的
 `llama-cpp-python` wheel，再安裝進最終的 runtime 映像，讓 GGUF 格式的 LLM
-節點（QwenVL、MAINodes 等）可使用 GPU 推理。因需要編譯，build 時間會拉長。
+節點（QwenVL、MAINodes、Simple_Qwen3-VL-gguf 等）可使用 GPU 推理。因需要編譯，
+build 時間會拉長。
+
+採用 [JamePeng/llama-cpp-python](https://github.com/JamePeng/llama-cpp-python)
+fork 而非官方版，因為官方版尚未支援 `ComfyUI_Simple_Qwen3-VL-gguf` 所需的
+Qwen3-VL、Qwen3.5、Gemma4 GGUF 多模態模型；此 fork 為 API 相容的替代品，
+`import llama_cpp` 與現有節點程式碼無需修改。
 
 ---
 

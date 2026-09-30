@@ -15,6 +15,7 @@ ARG CUDA_TAG=13.0.0-cudnn-runtime-ubuntu24.04
 ARG CUDA_TAG_DEVEL=13.0.0-cudnn-devel-ubuntu24.04
 
 # ---------- Stage 1: 建置 llama-cpp-python（CUDA/GGML_CUDA）wheel ----------
+# 改用 JamePeng fork：官方版不支援 ComfyUI_Simple_Qwen3-VL-gguf 所需的 Qwen3-VL/Qwen3.5/Gemma4 GGUF。
 FROM nvidia/cuda:${CUDA_TAG_DEVEL} AS llama-cpp-builder
 ENV DEBIAN_FRONTEND=noninteractive \
     PIP_NO_CACHE_DIR=1 \
@@ -32,7 +33,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && ln -sf /usr/bin/python3 /usr/bin/python \
     && rm -rf /var/lib/apt/lists/*
 RUN python -m pip install --upgrade pip --ignore-installed \
-    && python -m pip wheel --no-cache-dir --no-deps -w /wheels llama-cpp-python
+    && python -m pip wheel --no-cache-dir --no-deps -w /wheels \
+        "llama-cpp-python @ git+https://github.com/JamePeng/llama-cpp-python.git"
 
 # ---------- Stage 2: Runtime image ----------
 FROM nvidia/cuda:${CUDA_TAG}
