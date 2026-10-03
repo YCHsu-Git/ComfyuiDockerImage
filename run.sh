@@ -5,7 +5,7 @@
 # Usage : bash run.sh [OPTIONS]
 #
 #   -p, --port <port>     Host port，預設 8188（-g all 時預設改為 8190）
-#   -g, --gpu <id>        GPU id（0/1/all），預設自動選可用 VRAM 最大的那張
+#   -g, --gpu <id>        GPU id（0/1/all），預設自動選顯卡 VRAM 總容量最大的那張
 #                         用 all 可讓兩張卡同時可見，交由 ComfyUI-MultiGPU 節點分派，
 #                         容器名稱／port 會改用 comfyui-multigpu / 8190，
 #                         對應 docker-compose.yml 的 comfyui-multigpu 服務，
@@ -80,11 +80,11 @@ detect_github_version() {
     | grep '"tag_name"' | head -1 | awk -F'"' '{print $4}'
 }
 
-# ── 自動偵測 VRAM 最大的 GPU ─────────────────────────────────
+# ── 自動偵測 VRAM 最大的 GPU（以顯卡總 VRAM 容量為準）────────
 detect_best_gpu() {
     command -v nvidia-smi &>/dev/null || { echo "all"; return; }
     local best
-    best=$(nvidia-smi --query-gpu=index,memory.free \
+    best=$(nvidia-smi --query-gpu=index,memory.total \
            --format=csv,noheader,nounits 2>/dev/null \
            | sort -t',' -k2 -rn | head -1 \
            | awk -F',' '{print $1}' | tr -d ' ')
@@ -130,15 +130,15 @@ else
         warn "繼續以 --gpus 嘗試..."
     fi
 
-    # 自動選 VRAM 最大的 GPU
+    # 自動選 VRAM 最大的 GPU（依顯卡總 VRAM 容量，非目前可用量）
     if [[ "$GPU_AUTO" == true ]]; then
         GPU_ID=$(detect_best_gpu)
         if [[ "$GPU_ID" == "all" ]]; then
             log "GPU 自動偵測：使用全部 GPU"
         else
-            local_vram=$(nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits \
+            local_vram=$(nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits \
                          2>/dev/null | sed -n "$((GPU_ID+1))p" | tr -d ' ')
-            log "GPU 自動偵測：選擇 GPU ${GPU_ID}（可用 VRAM ${local_vram} MiB）"
+            log "GPU 自動偵測：選擇 GPU ${GPU_ID}（總 VRAM ${local_vram} MiB）"
         fi
     fi
 
